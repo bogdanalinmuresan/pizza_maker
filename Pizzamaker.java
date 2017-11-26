@@ -7,7 +7,6 @@ package pizza_maker;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,14 +20,26 @@ import java.util.InputMismatchException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Pizzamaker {
 	
-	HashMap<String,Integer> ingredient=new HashMap<String,Integer>();
-    HashMap<String,HashSet<String>> pizza=new HashMap<String,HashSet<String>>();
-    List<String> commandList=new ArrayList<String>();
+	private  HashMap<String,Integer> ingredient=new HashMap<String,Integer>();
+    private  HashMap<String,HashSet<String>> pizza=new HashMap<String,HashSet<String>>();
+    private  List<String> commandList=new ArrayList<String>();
+    
+    public HashMap<String,Integer> getIngredients(){
+    		return ingredient;
+    }
+    
+    public HashMap<String,HashSet<String>> getPizza() {
+    		return pizza;
+    }
+    
+    public List<String> getCommandsList() {
+    	return commandList;
+    }
+    
     
     /**
      * this function execute all commands received from console
@@ -41,27 +52,31 @@ public class Pizzamaker {
         switch( parts[0] ){
           case "add_ingredient":
             ingredient.put(parts[2], Integer.parseInt(parts[4])); 
+            System.out.println("The ingredient was added;");
             break;
           case "create_pizza":
             String[] part_ingredients=parts[4].split(",");
+            System.out.println("part_ingredients "+part_ingredients.length);
             //first check ingredients exists
             Boolean exist_ingredients=true;
+            
             for(int i=0;i<part_ingredients.length; i++){
               if (!ingredient.containsKey(part_ingredients[i])){
+            	  	
                   exist_ingredients=false;
               }
             }
               //now create the pizza
             if(exist_ingredients){
                 if(!pizza.containsKey(parts[2])){// if pizza do no exist
-                    
+                	
+                		pizza.put(parts[2], new HashSet<String>());
                     for(int i=0;i<part_ingredients.length; i++){
-                       if (ingredient.containsKey(part_ingredients[i])){
-                          pizza.put(parts[2], new HashSet<String>());
-                          pizza.get(parts[2]).add(part_ingredients[i]);
-                       }
-
+                    		pizza.get(parts[2]).add(part_ingredients[i]);
                     }
+                    System.out.println("Pizza was added in the system");
+                }else {
+                	System.out.println("Pizza was not added in the system because already exists");
                 }
             }else{
               System.out.println(" Not all ingredients exits so pizza can not be created"  );
@@ -147,122 +162,100 @@ public class Pizzamaker {
     
     
     
-    public void read(BufferedReader br,FileReader fr) {
-    Boolean exit=false;
-    
-    	while(!exit){
-            try{
-              br = new BufferedReader(new InputStreamReader(System.in));
-              String input=br.readLine();
-              String[] parts = input.split(" ");
-              try{
-                switch(parts[0]){
-                  case "import":
-                      br = null;
-                      fr=null;
-
-                      try{
-                        fr=new FileReader(parts[2]);
-                        br=new BufferedReader(fr);
-
-                        String sCurrentLine;
-                        while ((sCurrentLine = br.readLine()) != null) {
-                          commands(sCurrentLine, pizza, ingredient);
-                          commandList.add(sCurrentLine);
-                        }
-
-                      }catch(IOException e){
-                          e.printStackTrace();
-                      }
-                      finally{
-
-                        try{
-                            if(br!=null) br.close();
-
-                            if(fr!=null) fr.close();
-
-                        }catch(IOException e){
-                            e.printStackTrace();
-                        }
-                      }
-                      break;
-                  case "export":
-                    Writer writer = null;
-
-                    try {
-                        writer = new BufferedWriter(new OutputStreamWriter(
-                                new FileOutputStream(parts[2]), "utf-8"));
-
-                        for (String com : commandList) {
-                            writer.write(com);
-                        }
-                        
-                    } catch (IOException ex) {
-                        // report
-                    } finally {
-                        try {writer.close();} catch (Exception ex) {/*ignore*/}
-                    }
-                    break;
-
-                  case "add_ingredient":
-                    commandList.add(input);
-                    commands(input, pizza, ingredient);
-                    break;
-                  case "create_pizza":
-                    commandList.add(input);
-                    commands(input, pizza, ingredient);
-                    break;
-                  case "delete_pizza":
-                    commandList.add(input);
-                    commands(input, pizza, ingredient);
-                    break;
-                  case "delete_ingredient":
-                    commandList.add(input);
-                    commands(input, pizza, ingredient);
-                    break;
-                  case "search_pizza":
-                    commandList.add(input);
-                    commands(input, pizza, ingredient);
-                    break;
-                  case "exit":
-                    exit=true;
-                    break;
-                  default:
-                    System.out.println("Only next commands are allowed: ");
-                    System.out.println("---------------------------------------------- ");
-                    System.out.println("add_ingredient -name IngredientName -price price");
-                    System.out.println("create_pizza -name PizzaName -list_of_ingredients name1,name2,name3,...,nameN");
-                    System.out.println("delete_pizza -name PizzaName");
-                    System.out.println("delete_ingredient -name IngredientName");
-                    System.out.println("search_pizza [-ingredientName Name] [-price_threshold Price]");
-                    System.out.println("import -path filePath");
-                    System.out.println("export -fileName FileName");
-                    System.out.println("exit");
-                    System.out.println("---------------------------------------------- ");
-                }
-
-              }catch(InputMismatchException e){
-                e.printStackTrace();
-              }
-
-            }catch(IOException ex){
-              Logger.getLogger(Pizzamaker.class.getName()).log(Level.SEVERE, null, ex);
-            }
+    public void read(BufferedReader br,FileReader fr) throws IOException {
+    br = new BufferedReader(new InputStreamReader(System.in));
+    String input="";
+		while((input=br.readLine())!=null){
+	              String[] parts = input.split(" ");
+	              try{
+	                switch(parts[0]){
+	                  case "import":
+	                      br = null;
+	                      fr=null;
+	
+	                      try{
+	                        fr=new FileReader(parts[2]);
+	                        br=new BufferedReader(fr);
+	
+	                        String sCurrentLine;
+	                        while ((sCurrentLine = br.readLine()) != null) {
+	                          commands(sCurrentLine, pizza, ingredient);
+	                          commandList.add(sCurrentLine);
+	                        }
+	
+	                      }catch(IOException e){
+	                          e.printStackTrace();
+	                      }
+	                      finally{
+	
+	                        try{
+	                            if(br!=null) br.close();
+	
+	                            if(fr!=null) fr.close();
+	
+	                        }catch(IOException e){
+	                            e.printStackTrace();
+	                        }
+	                      }
+	                      break;
+	                  case "export":
+	                    Writer writer = null;
+	
+	                    try {
+	                        writer = new BufferedWriter(new OutputStreamWriter(
+	                                new FileOutputStream(parts[2]), "utf-8"));
+	
+	                        for (String com : commandList) {
+	                            writer.write(com);
+	                        }
+	                        
+	                    } catch (IOException ex) {
+	                        // report
+	                    } finally {
+	                        try {writer.close();} catch (Exception ex) {/*ignore*/}
+	                    }
+	                    break;
+	
+	                  case "add_ingredient":
+	                    commandList.add(input);
+	                    commands(input, pizza, ingredient);
+	                    break;
+	                  case "create_pizza":
+	                    commandList.add(input);
+	                    commands(input, pizza, ingredient);
+	                    break;
+	                  case "delete_pizza":
+	                    commandList.add(input);
+	                    commands(input, pizza, ingredient);
+	                    break;
+	                  case "delete_ingredient":
+	                    commandList.add(input);
+	                    commands(input, pizza, ingredient);
+	                    break;
+	                  case "search_pizza":
+	                    commandList.add(input);
+	                    commands(input, pizza, ingredient);
+	                    break;
+	                  
+	                  default:
+	                    System.out.println("Only next commands are allowed: ");
+	                    System.out.println("---------------------------------------------- ");
+	                    System.out.println("add_ingredient -name IngredientName -price price");
+	                    System.out.println("create_pizza -name PizzaName -list_of_ingredients name1,name2,name3,...,nameN");
+	                    System.out.println("delete_pizza -name PizzaName");
+	                    System.out.println("delete_ingredient -name IngredientName");
+	                    System.out.println("search_pizza [-ingredientName Name] [-price_threshold Price]");
+	                    System.out.println("import -path filePath");
+	                    System.out.println("export -fileName FileName");
+	                    System.out.println("---------------------------------------------- ");
+	                }
+	
+	              }catch(InputMismatchException e){
+	                e.printStackTrace();
+	              }
+            
 
         }
     }
-    /**
-     * @param args the command line arguments
-     */
-    
-    public static void main(String[] args) {
-       
-    	BufferedReader br=null;
-    FileReader fr = null;
-	
-    Pizzamaker pm=new Pizzamaker();
-    pm.read(br,fr);
-        
-        
-    }
+
 }
